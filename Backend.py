@@ -1,8 +1,11 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+from datetime import date
 
-
+today = str(date.today())
+year, month, date = today.split('-')
+filename = '{}-{}'.format(month, year)
 
 class acc_auto:
     def __init__(self,data):
@@ -14,14 +17,12 @@ class acc_auto:
     Helper function to calculate the remaining balance
     """
     def balance(self):
-        Balance = 0
         Balance = self.data['Amount'].sum()
         return Balance
     """
         Helper function to calculate expenses
     """
     def expenses(self):
-        expenses = 0
         expenses = self.data.loc[self.data['Amount'] < 0, 'Amount'].sum()
         return expenses
 
@@ -36,23 +37,27 @@ class acc_auto:
         expenses = self.data.loc[self.data['Amount'] > 0, 'Amount'].sum()
         return expenses
 
-    def grouping(self):
-        self.data['Category'] = ""
+    def summary_exp(self):
+        self.data['Info'] = ""
         new = self.data["Description"].str.split(" ", n=1, expand=True)
-        self.data['Category']=new[0]
-        groups = self.data.groupby("Category")['Amount'].sum()
+        self.data['Info']=new[0]
+        groups = self.data.groupby("Info")['Amount'].sum()
         plt.figure(figsize=(10,20))
-        figure = groups.plot(x='Category', y = 'Amount', kind = 'bar')
+        figure = groups.plot(x='Info', y = 'Amount', kind = 'bar')
         for p in figure.patches:
             figure.annotate(str(p.get_height()), (p.get_x() * 1.005, p.get_height() * 1.005))
-        plt.savefig("fig.pdf")
+        plt.savefig("Summary Of Expenses-"+ filename + ".pdf")
         plt.close("all")
 
-    #def pie(self):
-     #   groups2 = self.data.groupby("Category")['Amount'].sum()
-     #   figure2 = groups2.plot.pie(y='Amount')
-     #   plt.savefig("pie.pdf")
-     #   plt.close()
+    def grouped_expenses(self):
+     pie_data = self.data[['Category', 'Amount']]
+     pie_data.drop(pie_data[pie_data['Amount'] > 0].index, inplace=True)
+     pie_data['Amount'] = pie_data['Amount'].apply(lambda x: x * -1)
+     pie_data2 = pie_data.groupby("Category")['Amount'].sum()
+     figure2 = pie_data2.plot.pie()
+     figurename= filename
+     plt.savefig("Grouped Expenses-"+ filename + ".pdf")
+     plt.close()
 
 
 
